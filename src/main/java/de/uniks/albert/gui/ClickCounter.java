@@ -12,6 +12,7 @@ import javafx.stage.Stage;
 
 public class ClickCounter extends Application
 {
+
    SimpleIntegerProperty counter = new SimpleIntegerProperty();
 
    @Override
