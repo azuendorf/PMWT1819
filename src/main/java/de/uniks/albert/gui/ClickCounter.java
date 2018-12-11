@@ -13,16 +13,18 @@ import javafx.stage.Stage;
 public class ClickCounter extends Application
 {
 
-   SimpleIntegerProperty counter = new SimpleIntegerProperty();
+   public SimpleIntegerProperty counter = new SimpleIntegerProperty();
 
    @Override
    public void start(Stage stage) throws Exception
    {
       Button button = new Button("Click Me");
+      button.setId("clickMe");
       button.setOnAction(e -> countClick());
 
       Label label = new Label("Clicks: ");
       Label counterLabel = new Label();
+      counterLabel.setId("countLabel");
       counterLabel.textProperty().bind(counter.asString());
 
       HBox hBox = new HBox(18, label, counterLabel);
