@@ -17,6 +17,7 @@ public class PartyApp extends Application
 
       Scene scene = new Scene(view, 600, 800);
       stage.setScene(scene);
+      stage.setX(50);
       stage.show();
    }
 }

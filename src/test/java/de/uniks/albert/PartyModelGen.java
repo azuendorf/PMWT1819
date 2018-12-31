@@ -16,10 +16,20 @@ public class PartyModelGen
             .buildAttribute("date", mb.STRING);
 
       ClassBuilder participant = mb.buildClass("Participant")
-            .buildAttribute("name", mb.STRING);
+            .buildAttribute("name", mb.STRING)
+            .buildAttribute("saldo", mb.DOUBLE);
+
+      ClassBuilder item = mb.buildClass("ShoppingItem")
+            .buildAttribute("description", mb.STRING)
+            .buildAttribute("price", mb.DOUBLE);
 
       party.buildAssociation(participant, "participants", mb.MANY,
             "party", mb.ONE);
+
+      party.buildAssociation(item, "shoppingItems", mb.MANY,
+            "party", mb.ONE);
+
+      item.buildAssociation(participant, "responsible", mb.ONE, "items", mb.MANY);
 
       Fulib.generator().generate(mb.getClassModel());
    }

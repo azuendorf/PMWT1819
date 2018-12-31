@@ -1,6 +1,7 @@
 package de.uniks.party;
 
 import de.uniks.party.model.Party;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -40,12 +41,14 @@ public class StartDialogController
 
          Label locationLabel = new Label("Location:");
          locationField = new TextField();
+         locationField.setId("locationField");
          locationField.textProperty().addListener(
                e -> party.setLocation(locationField.getText())
          );
 
          Label dateLabel = new Label("Date:");
          dateField = new TextField();
+         dateField.setId("dateField");
          dateField.textProperty().addListener(
                e -> party.setDate(dateField.getText())
          );
@@ -73,6 +76,8 @@ public class StartDialogController
       nameField.setText(Model.getParty().getPartyName());
       locationField.setText(Model.getParty().getLocation());
       dateField.setText(Model.getParty().getDate());
+
+      Platform.runLater(()->nameField.requestFocus());
 
       return dialogRoot;
    }

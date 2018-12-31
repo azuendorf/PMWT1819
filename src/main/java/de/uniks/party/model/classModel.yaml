@@ -1,5 +1,5 @@
 - c1: 	ClassModel
-  classes: 	party2 	participant3 	
+  classes: 	party2 	participant3 	shoppingItem4 	
   defaultPropertyStyle: 	POJO
   defaultRoleType: 	"java.util.ArrayList<%s>"
   mainJavaDir: 	"src/main/java"
@@ -7,66 +7,135 @@
   packageSrcFolder: 	"src/main/java/de/uniks/party/model"
 
 - party2: 	Clazz
-  attributes: 	partyName4 	location5 	date6 	
+  attributes: 	partyName5 	location6 	date7 	
   model: 	c1
   modified: 	false
   name: 	Party
   propertyStyle: 	POJO
-  roles: 	participants7 	
+  roles: 	participants8 	shoppingItems9 	
 
 - participant3: 	Clazz
-  attributes: 	name8 	
+  attributes: 	name10 	saldo11 	
   model: 	c1
   modified: 	false
   name: 	Participant
   propertyStyle: 	POJO
-  roles: 	party9 	
+  roles: 	party12 	items13 	
 
-- partyName4: 	Attribute
+- shoppingItem4: 	Clazz
+  attributes: 	description14 	price15 	
+  model: 	c1
+  modified: 	false
+  name: 	ShoppingItem
+  propertyStyle: 	POJO
+  roles: 	party16 	responsible17 	
+
+- partyName5: 	Attribute
   clazz: 	party2
   modified: 	false
   name: 	partyName
   propertyStyle: 	POJO
   type: 	String
 
-- location5: 	Attribute
+- location6: 	Attribute
   clazz: 	party2
   modified: 	false
   name: 	location
   propertyStyle: 	POJO
   type: 	String
 
-- date6: 	Attribute
+- date7: 	Attribute
   clazz: 	party2
   modified: 	false
   name: 	date
   propertyStyle: 	POJO
   type: 	String
 
-- participants7: 	AssocRole
+- participants8: 	AssocRole
   aggregation: 	false
   cardinality: 	42
   clazz: 	party2
   modified: 	false
   name: 	participants
-  other: 	party9
+  other: 	party12
   propertyStyle: 	POJO
   roleType: 	"java.util.ArrayList<%s>"
 
-- name8: 	Attribute
+- shoppingItems9: 	AssocRole
+  aggregation: 	false
+  cardinality: 	42
+  clazz: 	party2
+  modified: 	false
+  name: 	shoppingItems
+  other: 	party16
+  propertyStyle: 	POJO
+  roleType: 	"java.util.ArrayList<%s>"
+
+- name10: 	Attribute
   clazz: 	participant3
   modified: 	false
   name: 	name
   propertyStyle: 	POJO
   type: 	String
 
-- party9: 	AssocRole
+- saldo11: 	Attribute
+  clazz: 	participant3
+  modified: 	false
+  name: 	saldo
+  propertyStyle: 	POJO
+  type: 	double
+
+- party12: 	AssocRole
   aggregation: 	false
   cardinality: 	1
   clazz: 	participant3
   modified: 	false
   name: 	party
-  other: 	participants7
+  other: 	participants8
+  propertyStyle: 	POJO
+  roleType: 	"java.util.ArrayList<%s>"
+
+- items13: 	AssocRole
+  aggregation: 	false
+  cardinality: 	42
+  clazz: 	participant3
+  modified: 	false
+  name: 	items
+  other: 	responsible17
+  propertyStyle: 	POJO
+  roleType: 	"java.util.ArrayList<%s>"
+
+- description14: 	Attribute
+  clazz: 	shoppingItem4
+  modified: 	false
+  name: 	description
+  propertyStyle: 	POJO
+  type: 	String
+
+- price15: 	Attribute
+  clazz: 	shoppingItem4
+  modified: 	false
+  name: 	price
+  propertyStyle: 	POJO
+  type: 	double
+
+- party16: 	AssocRole
+  aggregation: 	false
+  cardinality: 	1
+  clazz: 	shoppingItem4
+  modified: 	false
+  name: 	party
+  other: 	shoppingItems9
+  propertyStyle: 	POJO
+  roleType: 	"java.util.ArrayList<%s>"
+
+- responsible17: 	AssocRole
+  aggregation: 	false
+  cardinality: 	1
+  clazz: 	shoppingItem4
+  modified: 	false
+  name: 	responsible
+  other: 	items13
   propertyStyle: 	POJO
   roleType: 	"java.util.ArrayList<%s>"
 

@@ -138,6 +138,9 @@ public class Party
       this.withoutParticipants(this.getParticipants().clone());
 
 
+      this.withoutShoppingItems(this.getShoppingItems().clone());
+
+
    }
 
 
@@ -212,6 +215,84 @@ public class Party
                this.participants.remove((Participant)item);
                ((Participant)item).setParty(null);
                firePropertyChange("participants", item, null);
+            }
+         }
+      }
+      return this;
+   }
+
+
+   public static final java.util.ArrayList<ShoppingItem> EMPTY_shoppingItems = new java.util.ArrayList<ShoppingItem>()
+   { @Override public boolean add(ShoppingItem value){ throw new UnsupportedOperationException("No direct add! Use xy.withShoppingItems(obj)"); }};
+
+
+   public static final String PROPERTY_shoppingItems = "shoppingItems";
+
+   private java.util.ArrayList<ShoppingItem> shoppingItems = null;
+
+   public java.util.ArrayList<ShoppingItem> getShoppingItems()
+   {
+      if (this.shoppingItems == null)
+      {
+         return EMPTY_shoppingItems;
+      }
+
+      return this.shoppingItems;
+   }
+
+   public Party withShoppingItems(Object... value)
+   {
+      if(value==null) return this;
+      for (Object item : value)
+      {
+         if (item == null) continue;
+         if (item instanceof java.util.Collection)
+         {
+            for (Object i : (java.util.Collection) item)
+            {
+               this.withShoppingItems(i);
+            }
+         }
+         else if (item instanceof ShoppingItem)
+         {
+            if (this.shoppingItems == null)
+            {
+               this.shoppingItems = new java.util.ArrayList<ShoppingItem>();
+            }
+            if ( ! this.shoppingItems.contains(item))
+            {
+               this.shoppingItems.add((ShoppingItem)item);
+               ((ShoppingItem)item).setParty(this);
+               firePropertyChange("shoppingItems", null, item);
+            }
+         }
+         else throw new IllegalArgumentException();
+      }
+      return this;
+   }
+
+
+
+   public Party withoutShoppingItems(Object... value)
+   {
+      if (this.shoppingItems == null || value==null) return this;
+      for (Object item : value)
+      {
+         if (item == null) continue;
+         if (item instanceof java.util.Collection)
+         {
+            for (Object i : (java.util.Collection) item)
+            {
+               this.withoutShoppingItems(i);
+            }
+         }
+         else if (item instanceof ShoppingItem)
+         {
+            if (this.shoppingItems.contains(item))
+            {
+               this.shoppingItems.remove((ShoppingItem)item);
+               ((ShoppingItem)item).setParty(null);
+               firePropertyChange("shoppingItems", item, null);
             }
          }
       }
