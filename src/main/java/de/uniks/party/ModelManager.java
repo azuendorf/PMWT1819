@@ -53,6 +53,8 @@ public class ModelManager
    // event handling
    public void applyEvents(String yaml)
    {
+      if (yaml == null) return;
+
       Yamler yamler = new Yamler();
       ArrayList<LinkedHashMap<String, String>> list = yamler.decodeList(yaml);
       applyEvents(list);
@@ -62,6 +64,8 @@ public class ModelManager
    {
       for (LinkedHashMap<String, String> map : events)
       {
+         if (eventSource.isOverwritten(map)) continue;
+
          String oldTimeStampString = map.get(EventSource.EVENT_TIMESTAMP);
 
          eventSource.setOldEventTimeStamp(oldTimeStampString);
@@ -140,6 +144,8 @@ public class ModelManager
             .setPrice(price)
             .setResponsible(responsible);
 
+      updateSaldi();
+
       // fire event
       StringBuilder buf = new StringBuilder()
             .append("- " + EventSource.EVENT_TYPE + ": ").append(HAVE_SHOPPING_ITEM).append("\n")
@@ -178,6 +184,8 @@ public class ModelManager
       result = new Participant()
             .setName(name)
             .setParty(theParty);
+
+      updateSaldi();
 
       StringBuilder buf = new StringBuilder()
             .append("- " + EventSource.EVENT_TYPE + ": ").append(HAVE_PARTICIPANT).append("\n")
@@ -244,7 +252,7 @@ public class ModelManager
          ModelManager.get();
 
          // keep saldi up to date
-         new ModelListener(theParty, e -> updateSaldi());
+         // new ModelListener(theParty, e -> updateSaldi());
 
       }
 

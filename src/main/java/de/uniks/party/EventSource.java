@@ -60,6 +60,20 @@ public class EventSource
       return resultMap;
    }
 
+   public boolean isOverwritten(LinkedHashMap<String, String> map)
+   {
+      String eventKey = map.get(EVENT_KEY);
+      String eventTimeTxt = map.get(EVENT_TIMESTAMP);
+
+      Long storedTime = keyNumMap.get(eventKey);
+
+      if (storedTime == null) return false;
+
+      String storedTimeTxt = dateFormat.format(storedTime);
+
+      return storedTimeTxt.compareTo(eventTimeTxt) >= 0;
+   }
+
 
    private long oldEventTimeStamp = 0;
 
@@ -190,4 +204,5 @@ public class EventSource
    {
       eventListeners.add(listener);
    }
+
 }

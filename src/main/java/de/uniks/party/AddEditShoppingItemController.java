@@ -100,5 +100,7 @@ public class AddEditShoppingItemController
             descriptionField.getText(),
             price,
             responsibleChoice.getValue());
+
+      partyController.switchToShoppingScreen();
    }
 }

@@ -12,6 +12,8 @@ import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
 
+import java.io.File;
+
 public class PartyAppTests extends ApplicationTest
 {
 
@@ -20,6 +22,10 @@ public class PartyAppTests extends ApplicationTest
    @Override
    public void start(Stage stage) throws Exception
    {
+      // remove old log files
+      File file = new File("tmp/PartyData/partyEvents.yaml");
+      if (file.exists()) file.delete();
+
       partyApp = new PartyApp();
       partyApp.start(stage);
    }
@@ -53,12 +59,12 @@ public class PartyAppTests extends ApplicationTest
       clickOn("Shopping");
 
       write("beer\t");
-      write("23,00\t");
+      write("22,00\t");
       clickOn("#choice");
       clickOn("Albert");
       clickOn("OK");
 
-      assertThat(ModelManager.getParty().getShoppingItems().get(0).getPrice(), equalTo(23.0));
+      assertThat(ModelManager.getParty().getShoppingItems().get(0).getPrice(), equalTo(22.0));
 
       clickOn("+");
 

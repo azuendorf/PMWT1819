@@ -56,12 +56,10 @@ public class StartDialogController
          // budget
 
          // next screen
-         Button nextScreenButton = new Button("OK");
+         Button nextScreenButton = new Button("->");
          nextScreenButton.setOnAction(e -> okAction());
-         Button resetButton = new Button("Reset");
-         resetButton.setOnAction(e -> partyController.switchToStartScreen());
 
-         HBox nextScreenHBox = new HBox(9, nextScreenButton, resetButton);
+         HBox nextScreenHBox = new HBox(9, nextScreenButton);
          nextScreenHBox.setAlignment(Pos.CENTER_RIGHT);
 
          dialogRoot = new VBox(18, bigPartyLabel,

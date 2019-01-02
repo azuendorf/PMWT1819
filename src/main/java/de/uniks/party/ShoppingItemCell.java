@@ -30,6 +30,7 @@ public class ShoppingItemCell extends ListCell<ShoppingItem>
       {
          Label nameLabel = new Label(item.getDescription());
          nameLabel.setPrefWidth(120);
+         nameLabel.setAlignment(Pos.CENTER_LEFT);
 
          String text = "n.n.";
          if (item.getResponsible() != null)
@@ -38,9 +39,11 @@ public class ShoppingItemCell extends ListCell<ShoppingItem>
          }
          Label responsibleLabel = new Label(text);
          responsibleLabel.setPrefWidth(120);
+         responsibleLabel.setAlignment(Pos.CENTER_LEFT);
 
          Label priceLabel = new Label(String.format("%.2f €", item.getPrice()));
          priceLabel.setAlignment(Pos.CENTER_RIGHT);
+         priceLabel.setPrefWidth(60);
 
          Button editButton = new Button("<");
          editButton.setOnAction(e -> partyController.switchToAddEditShoppingItem(item));
