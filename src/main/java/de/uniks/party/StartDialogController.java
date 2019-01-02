@@ -9,7 +9,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import org.fulib.yaml.ModelListener;
 
 public class StartDialogController
 {
@@ -18,6 +17,7 @@ public class StartDialogController
    private TextField locationField;
    private TextField dateField;
    private PartyController partyController;
+   private String oldContent;
 
    public StartDialogController(PartyController partyController)
    {
@@ -28,7 +28,7 @@ public class StartDialogController
    {
       if (dialogRoot == null)
       {
-         Party party = Model.getParty();
+         Party party = ModelManager.getParty();
 
          // build it
          Label bigPartyLabel = new Label("Big Party:");
@@ -56,10 +56,12 @@ public class StartDialogController
          // budget
 
          // next screen
-         Button nextScreenButton = new Button("->");
-         nextScreenButton.setOnAction(e -> partyController.switchToPeopleScreen());
+         Button nextScreenButton = new Button("OK");
+         nextScreenButton.setOnAction(e -> okAction());
+         Button resetButton = new Button("Reset");
+         resetButton.setOnAction(e -> partyController.switchToStartScreen());
 
-         HBox nextScreenHBox = new HBox(nextScreenButton);
+         HBox nextScreenHBox = new HBox(9, nextScreenButton, resetButton);
          nextScreenHBox.setAlignment(Pos.CENTER_RIGHT);
 
          dialogRoot = new VBox(18, bigPartyLabel,
@@ -73,15 +75,25 @@ public class StartDialogController
 
       }
 
-      nameField.setText(Model.getParty().getPartyName());
-      locationField.setText(Model.getParty().getLocation());
-      dateField.setText(Model.getParty().getDate());
+
+      oldContent = String.format("%s|%s|%s",
+            ModelManager.getParty().getPartyName(),
+            ModelManager.getParty().getLocation(),
+            ModelManager.getParty().getDate());
+      nameField.setText(ModelManager.getParty().getPartyName());
+      locationField.setText(ModelManager.getParty().getLocation());
+      dateField.setText(ModelManager.getParty().getDate());
 
       Platform.runLater(()->nameField.requestFocus());
 
       return dialogRoot;
    }
 
+   private void okAction()
+   {
+      ModelManager.get().haveParty(nameField.getText(), locationField.getText(), dateField.getText(), oldContent);
+      partyController.switchToPeopleScreen();
+   }
 
 
 }

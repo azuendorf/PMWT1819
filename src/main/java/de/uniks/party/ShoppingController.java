@@ -1,6 +1,5 @@
 package de.uniks.party;
 
-import de.uniks.party.model.Participant;
 import de.uniks.party.model.Party;
 import de.uniks.party.model.ShoppingItem;
 import javafx.application.Platform;
@@ -52,13 +51,13 @@ public class ShoppingController
          dialogRoot.setAlignment(Pos.CENTER);
       }
 
-      Party party = Model.getParty();
+      Party party = ModelManager.getParty();
       String text = party.getPartyName() + " "
             + party.getLocation() + " "
             + party.getDate();
 
       itemsList.clear();
-      itemsList.addAll(Model.getParty().getShoppingItems());
+      itemsList.addAll(ModelManager.getParty().getShoppingItems());
 
       titleLabel.setText(text);
 

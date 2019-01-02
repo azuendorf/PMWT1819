@@ -3,7 +3,6 @@ package de.uniks.party;
 import de.uniks.party.model.Participant;
 import de.uniks.party.model.Party;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -58,13 +57,13 @@ public class PeopleController
          dialogRoot.setAlignment(Pos.CENTER);
       }
 
-      Party party = Model.getParty();
+      Party party = ModelManager.getParty();
       String text = party.getPartyName() + " "
             + party.getLocation() + " "
             + party.getDate();
 
       participantsList.clear();
-      participantsList.addAll(Model.getParty().getParticipants());
+      participantsList.addAll(ModelManager.getParty().getParticipants());
 
       titleLabel.setText(text);
 

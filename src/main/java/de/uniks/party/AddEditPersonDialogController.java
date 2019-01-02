@@ -63,14 +63,7 @@ public class AddEditPersonDialogController
 
    private void okButtonAction()
    {
-      if (participant == null)
-      {
-         participant = new Participant();
-         Model.getParty().withParticipants(participant);
-         // partyController.getPeopleController().getParticipantsList().add(participant);
-      }
-
-      participant.setName(nameField.getText());
+      ModelManager.get().haveParticipant(nameField.getText());
 
       partyController.switchToPeopleScreen();
    }

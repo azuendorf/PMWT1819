@@ -15,8 +15,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.text.NumberFormat;
-import java.text.ParseException;
-import java.util.Locale;
 
 public class AddEditShoppingItemController
 {
@@ -66,7 +64,7 @@ public class AddEditShoppingItemController
       }
 
       participantsList.clear();
-      participantsList.addAll(Model.getParty().getParticipants());
+      participantsList.addAll(ModelManager.getParty().getParticipants());
 
       if (item == null)
       {
@@ -88,14 +86,6 @@ public class AddEditShoppingItemController
 
    private void okAction()
    {
-      if (item == null)
-      {
-         item = new ShoppingItem();
-         Model.getParty().withShoppingItems(item);
-      }
-
-      item.setDescription(descriptionField.getText());
-
       double price = 0.0;
       try
       {
@@ -106,10 +96,9 @@ public class AddEditShoppingItemController
          e.printStackTrace();
       }
 
-      item.setPrice(price);
-
-      item.setResponsible(responsibleChoice.getValue());
-
-      partyController.switchToShoppingScreen();
+      ModelManager.get().haveShoppingItem(
+            descriptionField.getText(),
+            price,
+            responsibleChoice.getValue());
    }
 }

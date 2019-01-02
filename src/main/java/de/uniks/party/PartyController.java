@@ -63,7 +63,7 @@ public class PartyController
    {
       partyBox.getChildren().remove(dialogView);
 
-      if (Model.getParty().getShoppingItems().isEmpty())
+      if (ModelManager.getParty().getShoppingItems().isEmpty())
       {
          dialogView = addEditShoppingItemController.getView(null);
       }
@@ -86,7 +86,7 @@ public class PartyController
    {
       partyBox.getChildren().remove(dialogView);
 
-      if (Model.getParty().getParticipants().isEmpty())
+      if (ModelManager.getParty().getParticipants().isEmpty())
       {
          dialogView = addEditPersonDialogController.getView(null);
       }

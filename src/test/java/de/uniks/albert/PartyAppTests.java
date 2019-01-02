@@ -1,9 +1,7 @@
 package de.uniks.albert;
 
-import de.uniks.party.Model;
+import de.uniks.party.ModelManager;
 import de.uniks.party.PartyApp;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
@@ -13,7 +11,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
-import org.testfx.service.query.NodeQuery;
 
 public class PartyAppTests extends ApplicationTest
 {
@@ -61,7 +58,7 @@ public class PartyAppTests extends ApplicationTest
       clickOn("Albert");
       clickOn("OK");
 
-      assertThat(Model.getParty().getShoppingItems().get(0).getPrice(), equalTo(23.0));
+      assertThat(ModelManager.getParty().getShoppingItems().get(0).getPrice(), equalTo(23.0));
 
       clickOn("+");
 
@@ -71,7 +68,7 @@ public class PartyAppTests extends ApplicationTest
       clickOn("Nina");
       clickOn("OK");
 
-      assertThat(Model.getParty().getShoppingItems().get(1).getPrice(), equalTo(42.0));
+      assertThat(ModelManager.getParty().getShoppingItems().get(1).getPrice(), equalTo(42.0));
 
       clickOn("People");
 
