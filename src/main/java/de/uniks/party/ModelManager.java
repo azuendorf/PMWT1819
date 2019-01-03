@@ -3,14 +3,16 @@ package de.uniks.party;
 import de.uniks.party.model.Participant;
 import de.uniks.party.model.Party;
 import de.uniks.party.model.ShoppingItem;
-import jdk.jfr.Event;
-import org.fulib.yaml.ModelListener;
+import javafx.application.Platform;
 import org.fulib.yaml.Yamler;
 
 import java.io.*;
+import java.net.Socket;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,8 +23,14 @@ public class ModelManager
    public static final String HAVE_SHOPPING_ITEM = "haveShoppingItem";
    private static ModelManager mm;
    private final EventFiler eventFiler;
-   private final String historyFileName;
+   private static String historyFileName;
    private EventSource eventSource;
+   private BufferedWriter bufferedwriter;
+
+   public static void setHistoryFileName(String historyFileName)
+   {
+      ModelManager.historyFileName = historyFileName;
+   }
 
    public static ModelManager get()
    {
@@ -37,16 +45,104 @@ public class ModelManager
    private ModelManager()
    {
       eventSource = new EventSource();
-      historyFileName = "tmp/PartyData/partyEvents.yaml";
+      if (historyFileName == null)
+      {
+         historyFileName = "tmp/PartyData/partyEvents.yaml";
+      }
+
       eventFiler = new EventFiler(eventSource).setHistoryFileName(historyFileName);
 
-      String yaml = loadHistory();
+      connectToPartyServer();
 
+      eventSource.addEventListener(event -> publishEvent(event));
+
+      String yaml = loadHistory();
       applyEvents(yaml);
 
       storeHistory();
 
       eventFiler.startEventLogging();
+
+   }
+
+   private Socket socket = null;
+
+
+   // called on new events within gui thread
+   private void publishEvent(LinkedHashMap<String, String> event)
+   {
+      if (bufferedwriter == null)
+      {
+         connectToPartyServer();
+      }
+
+      String yaml = EventSource.encodeYaml(event);
+
+      try
+      {
+         System.out.println("sending \n" + yaml);
+         bufferedwriter.write(yaml);
+         bufferedwriter.flush();
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
+   }
+
+   private void connectToPartyServer()
+   {
+      try
+      {
+         socket = new Socket("localhost", 42424);
+         bufferedwriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+         ExecutorService readerService = Executors.newSingleThreadExecutor();
+         readerService.execute(() -> readMessages(socket));
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
+   }
+
+   // run by single thread executor
+   private void readMessages(Socket socket)
+   {
+      try
+      {
+         InputStream inputStream = socket.getInputStream();
+         InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+         BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+         StringBuilder buf = new StringBuilder();
+         while (true)
+         {
+            String line = bufferedReader.readLine();
+
+            if (line == null) break;
+
+            buf.append(line).append("\n");
+
+            if (line.equals(""))
+            {
+               String text = buf.toString();
+
+               if (text.trim().isEmpty()) continue;
+
+               // end of one event
+               System.out.println("party got:\n" + buf.toString());
+
+               Platform.runLater(() -> applyEvents(text));
+
+               buf.setLength(0);
+            }
+         }
+
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
    }
 
 
@@ -110,6 +206,12 @@ public class ModelManager
       }
 
       eventSource.setOldEventTimeStamp(0);
+
+      // call event listeners
+      for (Runnable runnable : listeners)
+      {
+         runnable.run();
+      }
    }
 
 
@@ -151,9 +253,12 @@ public class ModelManager
             .append("- " + EventSource.EVENT_TYPE + ": ").append(HAVE_SHOPPING_ITEM).append("\n")
             .append("  " + EventSource.EVENT_KEY + ": ").append(Yamler.encapsulate(description)).append("\n")
             .append("  " + ShoppingItem.PROPERTY_description + ": ").append(Yamler.encapsulate(description)).append("\n")
-            .append("  " + ShoppingItem.PROPERTY_price + ": ").append("" + price).append("\n")
-            .append("  " + ShoppingItem.PROPERTY_responsible + ": ").append(Yamler.encapsulate(responsible.getName())).append("\n")
-            .append("\n");
+            .append("  " + ShoppingItem.PROPERTY_price + ": ").append("" + price).append("\n");
+      if (responsible != null)
+      {
+         buf.append("  " + ShoppingItem.PROPERTY_responsible + ": ").append(Yamler.encapsulate(responsible.getName())).append("\n");
+      }
+      buf.append("\n");
 
       eventSource.append(buf);
 
@@ -318,5 +423,12 @@ public class ModelManager
 
          p.setSaldo(saldo);
       }
+   }
+
+   ArrayList<Runnable> listeners = new ArrayList<>();
+
+   public void addEventListener(Runnable listener)
+   {
+      listeners.add(listener);
    }
 }

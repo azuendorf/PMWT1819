@@ -54,9 +54,16 @@ public class PartyController
       partyBox.setStyle("-fx-background-color: white;" +
             "-fx-font-size: 18");
 
-
+      ModelManager.get().addEventListener(() -> updateViews());
 
       return partyBox;
+   }
+
+   private void updateViews()
+   {
+      startDialogController.getView();
+      peopleController.getView();
+      shoppingController.getView();
    }
 
    public void switchToShoppingScreen()

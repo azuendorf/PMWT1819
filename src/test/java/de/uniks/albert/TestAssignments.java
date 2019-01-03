@@ -55,7 +55,7 @@ public class TestAssignments
 
       result = ub.doAssignments(karli);
 
-      Assert.assertThat(karli.getCredits(), equalTo(17));
+      Assert.assertThat(karli.getCredits(), equalTo(0));
 
    }
 

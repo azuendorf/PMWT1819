@@ -1,6 +1,5 @@
 package de.uniks.party;
 
-import jdk.jfr.Event;
 import org.fulib.yaml.Yamler;
 
 import java.text.DateFormat;

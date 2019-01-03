@@ -2,16 +2,20 @@
 buildscript {
     repositories {
         mavenCentral()
+
+//        maven {
+//            url 'http://nexus.gluonhq.com/nexus/content/repositories/releases'
+//        }
     }
     dependencies {
         classpath 'com.google.gradle:osdetector-gradle-plugin:1.6.0'
+
+        classpath 'org.javafxports:jfxmobile-plugin:1.3.10'
     }
 }
 
-plugins {
-    id 'java'
-}
-
+apply plugin: 'java'
+apply plugin: 'org.javafxports.jfxmobile'
 apply plugin: 'application'
 apply plugin: 'com.google.osdetector'
 
@@ -22,7 +26,7 @@ ext.platform = osdetector.os == 'osx' ? 'mac' : osdetector.os == 'windows' ? 'wi
 group 'de.uniks.albert'
 version '1.0-SNAPSHOT'
 
-// sourceCompatibility = 1.8
+sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -41,4 +45,29 @@ dependencies {
     testCompile 'org.fulib:fulib:1.0.+'
     testCompile 'org.fulib:fulibTools:1.0.+'
     testCompile 'org.testfx:testfx-junit:4.0+'
+}
+
+mainClassName = 'de.uniks.party.PartyApp'
+
+jfxmobile {
+//    downConfig {
+//        version = '3.8.0'
+//        // Do not edit the line below. Use Gluon Mobile Settings in your project context menu instead
+//        plugins 'display', 'lifecycle', 'statusbar', 'storage'
+//    }
+    android {
+//        manifest = 'src/android/AndroidManifest.xml'
+        applicationPackage = 'de.uniks.party'
+    }
+    ios {
+        infoPList = file('src/ios/Default-Info.plist')
+        forceLinkClasses = [
+                'com.gluonhq.**.*',
+                'javax.annotations.**.*',
+                'javax.inject.**.*',
+                'javax.json.**.*',
+                'org.glassfish.json.**.*',
+                'de.uniks.party.**.*'
+        ]
+    }
 }
