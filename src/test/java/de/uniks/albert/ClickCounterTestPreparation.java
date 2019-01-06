@@ -2,7 +2,7 @@ package de.uniks.albert;
 
 import de.uniks.albert.gui.ClickCounter;
 import javafx.application.Platform;
-import javafx.embed.swing.SwingFXUtils;
+// import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Label;
@@ -61,10 +61,10 @@ public class ClickCounterTestPreparation extends ApplicationTest
       // TODO: probably use a file chooser here
       File file = new File(fileName);
 
-      try {
-         ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
-      } catch (IOException e) {
-         // TODO: handle exception here
-      }
+//      try {
+//        // ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
+//      } catch (IOException e) {
+//         // TODO: handle exception here
+//      }
    }
 }

@@ -80,6 +80,8 @@ public class EventSource
 
    public EventSource setOldEventTimeStamp(String oldTimeStampString)
    {
+      if (oldTimeStampString == null) return this; //========================
+
       long oldTimeStamp = 0;
       try
       {
@@ -104,6 +106,8 @@ public class EventSource
    public EventSource append(LinkedHashMap<String, String> event)
    {
       String timestampString;
+
+      setOldEventTimeStamp(event.get(EVENT_TIMESTAMP));
 
       if (oldEventTimeStamp > lastEventTime)
       {
@@ -137,9 +141,11 @@ public class EventSource
    }
 
 
-   public EventSource append(StringBuilder buf)
+   public EventSource append(String buf)
    {
-      ArrayList<LinkedHashMap<String, String>> list = yamler.decodeList(buf.toString());
+      if (buf == null) return this; //===========================================
+
+      ArrayList<LinkedHashMap<String, String>> list = yamler.decodeList(buf);
 
       for (LinkedHashMap<String, String> event : list)
       {
@@ -170,7 +176,8 @@ public class EventSource
       return buf.toString();
    }
    
-   public static String encodeYaml(List<LinkedHashMap<String, String>> events) {
+   public static String encodeYaml(List<LinkedHashMap<String, String>> events)
+   {
       StringBuffer buf = new StringBuffer();
       
       for (LinkedHashMap<String, String> event : events) {

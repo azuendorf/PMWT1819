@@ -42,6 +42,26 @@ public class EventFiler
       return content;
    }
 
+
+   public boolean storeHistory()
+   {
+      File historyFile = new File(historyFileName);
+
+      String yaml = eventSource.encodeYaml();
+      try {
+         PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(historyFileName)));
+         out.print(yaml);
+         out.close();
+      } catch (IOException e) {
+         Logger.getGlobal().log(Level.SEVERE, "could not write to historyFile " + historyFileName, e);
+         return false;
+      }
+
+      return true;
+   }
+
+
+
    public EventFiler startEventLogging()
    {
       eventSource.addEventListener(map -> this.storeEvent(map));

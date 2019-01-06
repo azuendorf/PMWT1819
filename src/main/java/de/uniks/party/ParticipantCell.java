@@ -13,7 +13,7 @@ public class ParticipantCell extends ListCell<Participant>
 {
    public ParticipantCell(PeopleController peopleController)
    {
-      System.out.println("P-Cell created");
+      // System.out.println("P-Cell created");
    }
 
    @Override

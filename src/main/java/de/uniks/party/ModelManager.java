@@ -4,8 +4,11 @@ import de.uniks.party.model.Participant;
 import de.uniks.party.model.Party;
 import de.uniks.party.model.ShoppingItem;
 import javafx.application.Platform;
+import org.fulib.yaml.StrUtil;
 import org.fulib.yaml.Yamler;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.*;
 import java.net.Socket;
 import java.text.NumberFormat;
@@ -21,26 +24,65 @@ public class ModelManager
    public static final String HAVE_PARTY = "haveParty";
    public static final String HAVE_PARTICIPANT = "haveParticipant";
    public static final String HAVE_SHOPPING_ITEM = "haveShoppingItem";
+   public static final String CONNECTED = "connected";
+   public static final String NO_CONNECTION = "noConnection";
+   public static final String HAVE_CONNECTION = "haveConnection";
    private static ModelManager mm;
-   private final EventFiler eventFiler;
+   private EventFiler eventFiler;
    private static String historyFileName;
    private EventSource eventSource;
    private BufferedWriter bufferedwriter;
+
+
+   public static final String PROPERTY_serverAddress = "serverAddress";
+   private String serverAddress = "localhost:42424";
+   private ExecutorService readerService;
+
+   public String getServerAddress()
+   {
+      return serverAddress;
+   }
+
+   public void setServerAddress(String serverAddress)
+   {
+      this.serverAddress = serverAddress;
+   }
+
+   public static final String PROPERTY_serverStatus = "serverStatus";
+   private String serverStatus = "unknown";
+
+   public String getServerStatus()
+   {
+      return serverStatus;
+   }
+
+   public void setServerStatus(String serverStatus)
+   {
+      if (StrUtil.stringEquals(serverStatus, this.serverStatus)) return;
+
+      String oldStatus = this.serverStatus;
+      this.serverStatus = serverStatus;
+
+      firePropertyChange(PROPERTY_serverStatus, oldStatus, this.serverStatus);
+   }
 
    public static void setHistoryFileName(String historyFileName)
    {
       ModelManager.historyFileName = historyFileName;
    }
 
+
    public static ModelManager get()
    {
       if (mm == null)
       {
+         ModelManager.getParty();
          mm = new ModelManager();
       }
 
       return mm;
    }
+
 
    private ModelManager()
    {
@@ -56,10 +98,10 @@ public class ModelManager
 
       eventSource.addEventListener(event -> publishEvent(event));
 
-      String yaml = loadHistory();
+      String yaml = eventFiler.loadHistory();
       applyEvents(yaml);
 
-      storeHistory();
+      eventFiler.storeHistory();
 
       eventFiler.startEventLogging();
 
@@ -71,37 +113,48 @@ public class ModelManager
    // called on new events within gui thread
    private void publishEvent(LinkedHashMap<String, String> event)
    {
-      if (bufferedwriter == null)
-      {
-         connectToPartyServer();
-      }
+      if ( ! StrUtil.stringEquals(this.serverStatus, CONNECTED)) return; //<===== sudden death
 
       String yaml = EventSource.encodeYaml(event);
 
       try
       {
-         System.out.println("sending \n" + yaml);
+         // System.out.println("sending \n" + yaml);
          bufferedwriter.write(yaml);
          bufferedwriter.flush();
       }
       catch (IOException e)
       {
-         e.printStackTrace();
+         setServerStatus(NO_CONNECTION);
       }
    }
 
-   private void connectToPartyServer()
+   public void connectToPartyServer()
    {
+      if (StrUtil.stringEquals(serverStatus, CONNECTED)) return; //<======== sudden death
+
       try
       {
-         socket = new Socket("localhost", 42424);
+         String[] split = serverAddress.split(":");
+         String host = split[0];
+         int port = Integer.parseInt(split[1]);
+         socket = new Socket(host, port);
          bufferedwriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-         ExecutorService readerService = Executors.newSingleThreadExecutor();
+         if (readerService == null)
+         {
+            readerService = Executors.newSingleThreadExecutor();
+         }
          readerService.execute(() -> readMessages(socket));
+
+         bufferedwriter.write(eventSource.encodeYaml());
+         bufferedwriter.flush();
+
+         setServerStatus(CONNECTED);
+
       }
       catch (IOException e)
       {
-         e.printStackTrace();
+         setServerStatus(NO_CONNECTION);
       }
    }
 
@@ -130,7 +183,7 @@ public class ModelManager
                if (text.trim().isEmpty()) continue;
 
                // end of one event
-               System.out.println("party got:\n" + buf.toString());
+               // System.out.println("party got:\n" + buf.toString());
 
                Platform.runLater(() -> applyEvents(text));
 
@@ -141,8 +194,9 @@ public class ModelManager
       }
       catch (IOException e)
       {
-         e.printStackTrace();
+         Platform.runLater( () ->setServerStatus(NO_CONNECTION));
       }
+      // System.out.println("Closing old reader service");
    }
 
 
@@ -203,15 +257,56 @@ public class ModelManager
 
             haveShoppingItem(description, price, responsible);
          }
+         else if (HAVE_CONNECTION.equals(map.get(EventSource.EVENT_TYPE)))
+         {
+            String address = map.get(PROPERTY_serverAddress);
+
+            haveConnection(address);
+         }
       }
 
       eventSource.setOldEventTimeStamp(0);
 
       // call event listeners
-      for (Runnable runnable : listeners)
+      for (Runnable runnable : viewListeners)
       {
          runnable.run();
       }
+   }
+
+   public void haveConnection(String address)
+   {
+      // no change?
+      if (StrUtil.stringEquals(this.serverStatus, CONNECTED) && StrUtil.stringEquals(this.serverAddress, address)) return; //<=============
+
+      setServerAddress(address);
+
+      // close old connection
+      if (StrUtil.stringEquals(this.serverStatus, CONNECTED))
+      {
+         try
+         {
+            bufferedwriter.close();
+            setServerStatus(NO_CONNECTION);
+         }
+         catch (IOException e)
+         {
+            e.printStackTrace();
+         }
+      }
+
+      // open new connection
+      connectToPartyServer();
+
+      // fire event
+      StringBuilder buf = new StringBuilder()
+            .append("- " + EventSource.EVENT_TYPE + ": ").append(HAVE_CONNECTION).append("\n")
+            .append("  " + EventSource.EVENT_KEY + ": ").append(Yamler.encapsulate(PROPERTY_serverAddress)).append("\n")
+            .append("  " + PROPERTY_serverAddress + ": ").append(Yamler.encapsulate(serverAddress)).append("\n")
+            .append("\n");
+
+      eventSource.append(buf.toString());
+
    }
 
 
@@ -260,7 +355,7 @@ public class ModelManager
       }
       buf.append("\n");
 
-      eventSource.append(buf);
+      eventSource.append(buf.toString());
 
       return result;
    }
@@ -298,7 +393,7 @@ public class ModelManager
             .append("  " + Participant.PROPERTY_name + ": ").append(Yamler.encapsulate(name)).append("\n")
             .append("\n");
 
-      eventSource.append(buf);
+      eventSource.append(buf.toString());
 
       return result;
    }
@@ -336,7 +431,7 @@ public class ModelManager
                .append("  " + Party.PROPERTY_date + ": ").append(Yamler.encapsulate(date)).append("\n")
                .append("\n");
 
-         eventSource.append(buf);
+         eventSource.append(buf.toString());
       }
 
       return party;
@@ -364,41 +459,7 @@ public class ModelManager
       return theParty;
    }
 
-   public String loadHistory()
-   {
-      File historyFile = new File(historyFileName);
-      String content = null;
-      try
-      {
-         byte[] bytes = new byte[(int) historyFile.length()];
-         InputStream inputStream = new FileInputStream(historyFile);
-         int read = inputStream.read(bytes);
-         content = new String(bytes);
-      }
-      catch (Exception e)
-      {
-         // Logger.getGlobal().log(Level.SEVERE, "could not load history", e);
-      }
 
-      return content;
-   }
-
-   public boolean storeHistory()
-   {
-      File historyFile = new File(historyFileName);
-
-      String yaml = eventSource.encodeYaml();
-      try {
-         PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(historyFileName)));
-         out.print(yaml);
-         out.close();
-      } catch (IOException e) {
-         Logger.getGlobal().log(Level.SEVERE, "could not write to historyFile " + historyFileName, e);
-         return false;
-      }
-
-      return true;
-   }
 
    private static void updateSaldi()
    {
@@ -425,10 +486,61 @@ public class ModelManager
       }
    }
 
-   ArrayList<Runnable> listeners = new ArrayList<>();
+   ArrayList<Runnable> viewListeners = new ArrayList<>();
 
-   public void addEventListener(Runnable listener)
+   public void addViewListener(Runnable listener)
    {
-      listeners.add(listener);
+      viewListeners.add(listener);
+   }
+
+
+   protected PropertyChangeSupport listeners = null;
+
+   public boolean firePropertyChange(String propertyName, Object oldValue, Object newValue)
+   {
+      if (listeners != null)
+      {
+         listeners.firePropertyChange(propertyName, oldValue, newValue);
+         return true;
+      }
+      return false;
+   }
+
+   public boolean addPropertyChangeListener(PropertyChangeListener listener)
+   {
+      if (listeners == null)
+      {
+         listeners = new PropertyChangeSupport(this);
+      }
+      listeners.addPropertyChangeListener(listener);
+      return true;
+   }
+
+   public boolean addPropertyChangeListener(String propertyName, PropertyChangeListener listener)
+   {
+      if (listeners == null)
+      {
+         listeners = new PropertyChangeSupport(this);
+      }
+      listeners.addPropertyChangeListener(propertyName, listener);
+      return true;
+   }
+
+   public boolean removePropertyChangeListener(PropertyChangeListener listener)
+   {
+      if (listeners != null)
+      {
+         listeners.removePropertyChangeListener(listener);
+      }
+      return true;
+   }
+
+   public boolean removePropertyChangeListener(String propertyName,PropertyChangeListener listener)
+   {
+      if (listeners != null)
+      {
+         listeners.removePropertyChangeListener(propertyName, listener);
+      }
+      return true;
    }
 }
