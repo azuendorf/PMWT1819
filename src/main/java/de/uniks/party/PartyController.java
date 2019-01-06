@@ -66,7 +66,7 @@ public class PartyController
             "-fx-font-size: 18");
 
       ModelManager.get().addViewListener(() -> updateViews());
-      ModelManager.get().addPropertyChangeListener(e -> setColorForSettingsButton(settingsButton));
+      ModelManager.get().getDistributor().addPropertyChangeListener(e -> setColorForSettingsButton(settingsButton));
       setColorForSettingsButton(settingsButton);
 
       return partyBox;
@@ -74,7 +74,7 @@ public class PartyController
 
    private void setColorForSettingsButton(Button settingsButton)
    {
-      if (StrUtil.stringEquals(ModelManager.get().getServerStatus(), ModelManager.CONNECTED))
+      if (StrUtil.stringEquals(ModelManager.get().getDistributor().getServerStatus(), ModelDistribution.CONNECTED))
       {
          settingsButton.setStyle("-fx-background-color:green;");
       }

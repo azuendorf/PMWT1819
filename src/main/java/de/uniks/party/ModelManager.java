@@ -24,51 +24,17 @@ public class ModelManager
    public static final String HAVE_PARTY = "haveParty";
    public static final String HAVE_PARTICIPANT = "haveParticipant";
    public static final String HAVE_SHOPPING_ITEM = "haveShoppingItem";
-   public static final String CONNECTED = "connected";
-   public static final String NO_CONNECTION = "noConnection";
    public static final String HAVE_CONNECTION = "haveConnection";
+
    private static ModelManager mm;
-   private EventFiler eventFiler;
-   private static String historyFileName;
-   private EventSource eventSource;
-   private BufferedWriter bufferedwriter;
 
+   private ModelDistribution distributor;
 
-   public static final String PROPERTY_serverAddress = "serverAddress";
-   private String serverAddress = "localhost:42424";
-   private ExecutorService readerService;
-
-   public String getServerAddress()
+   private ModelManager()
    {
-      return serverAddress;
-   }
-
-   public void setServerAddress(String serverAddress)
-   {
-      this.serverAddress = serverAddress;
-   }
-
-   public static final String PROPERTY_serverStatus = "serverStatus";
-   private String serverStatus = "unknown";
-
-   public String getServerStatus()
-   {
-      return serverStatus;
-   }
-
-   public void setServerStatus(String serverStatus)
-   {
-      if (StrUtil.stringEquals(serverStatus, this.serverStatus)) return;
-
-      String oldStatus = this.serverStatus;
-      this.serverStatus = serverStatus;
-
-      firePropertyChange(PROPERTY_serverStatus, oldStatus, this.serverStatus);
-   }
-
-   public static void setHistoryFileName(String historyFileName)
-   {
-      ModelManager.historyFileName = historyFileName;
+      getParty();
+      distributor = new ModelDistribution(this);
+      distributor.start();
    }
 
 
@@ -76,7 +42,6 @@ public class ModelManager
    {
       if (mm == null)
       {
-         ModelManager.getParty();
          mm = new ModelManager();
       }
 
@@ -84,119 +49,9 @@ public class ModelManager
    }
 
 
-   private ModelManager()
+   public ModelDistribution getDistributor()
    {
-      eventSource = new EventSource();
-      if (historyFileName == null)
-      {
-         historyFileName = "tmp/PartyData/partyEvents.yaml";
-      }
-
-      eventFiler = new EventFiler(eventSource).setHistoryFileName(historyFileName);
-
-      connectToPartyServer();
-
-      eventSource.addEventListener(event -> publishEvent(event));
-
-      String yaml = eventFiler.loadHistory();
-      applyEvents(yaml);
-
-      eventFiler.storeHistory();
-
-      eventFiler.startEventLogging();
-
-   }
-
-   private Socket socket = null;
-
-
-   // called on new events within gui thread
-   private void publishEvent(LinkedHashMap<String, String> event)
-   {
-      if ( ! StrUtil.stringEquals(this.serverStatus, CONNECTED)) return; //<===== sudden death
-
-      String yaml = EventSource.encodeYaml(event);
-
-      try
-      {
-         // System.out.println("sending \n" + yaml);
-         bufferedwriter.write(yaml);
-         bufferedwriter.flush();
-      }
-      catch (IOException e)
-      {
-         setServerStatus(NO_CONNECTION);
-      }
-   }
-
-   public void connectToPartyServer()
-   {
-      if (StrUtil.stringEquals(serverStatus, CONNECTED)) return; //<======== sudden death
-
-      try
-      {
-         String[] split = serverAddress.split(":");
-         String host = split[0];
-         int port = Integer.parseInt(split[1]);
-         socket = new Socket(host, port);
-         bufferedwriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-         if (readerService == null)
-         {
-            readerService = Executors.newSingleThreadExecutor();
-         }
-         readerService.execute(() -> readMessages(socket));
-
-         bufferedwriter.write(eventSource.encodeYaml());
-         bufferedwriter.flush();
-
-         setServerStatus(CONNECTED);
-
-      }
-      catch (IOException e)
-      {
-         setServerStatus(NO_CONNECTION);
-      }
-   }
-
-   // run by single thread executor
-   private void readMessages(Socket socket)
-   {
-      try
-      {
-         InputStream inputStream = socket.getInputStream();
-         InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-         BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-
-         StringBuilder buf = new StringBuilder();
-         while (true)
-         {
-            String line = bufferedReader.readLine();
-
-            if (line == null) break;
-
-            buf.append(line).append("\n");
-
-            if (line.equals(""))
-            {
-               String text = buf.toString();
-
-               if (text.trim().isEmpty()) continue;
-
-               // end of one event
-               // System.out.println("party got:\n" + buf.toString());
-
-               Platform.runLater(() -> applyEvents(text));
-
-               buf.setLength(0);
-            }
-         }
-
-      }
-      catch (IOException e)
-      {
-         Platform.runLater( () ->setServerStatus(NO_CONNECTION));
-      }
-      // System.out.println("Closing old reader service");
+      return distributor;
    }
 
 
@@ -214,11 +69,11 @@ public class ModelManager
    {
       for (LinkedHashMap<String, String> map : events)
       {
-         if (eventSource.isOverwritten(map)) continue;
+         if (distributor.getEventSource().isOverwritten(map)) continue;
 
          String oldTimeStampString = map.get(EventSource.EVENT_TIMESTAMP);
 
-         eventSource.setOldEventTimeStamp(oldTimeStampString);
+         distributor.getEventSource().setOldEventTimeStamp(oldTimeStampString);
          if (HAVE_PARTY.equals(map.get(EventSource.EVENT_TYPE)))
          {
             String name = map.get(Party.PROPERTY_partyName);
@@ -259,13 +114,13 @@ public class ModelManager
          }
          else if (HAVE_CONNECTION.equals(map.get(EventSource.EVENT_TYPE)))
          {
-            String address = map.get(PROPERTY_serverAddress);
+            String address = map.get(ModelDistribution.PROPERTY_serverAddress);
 
             haveConnection(address);
          }
       }
 
-      eventSource.setOldEventTimeStamp(0);
+      distributor.getEventSource().setOldEventTimeStamp(0);
 
       // call event listeners
       for (Runnable runnable : viewListeners)
@@ -274,20 +129,22 @@ public class ModelManager
       }
    }
 
+
    public void haveConnection(String address)
    {
       // no change?
-      if (StrUtil.stringEquals(this.serverStatus, CONNECTED) && StrUtil.stringEquals(this.serverAddress, address)) return; //<=============
+      if (StrUtil.stringEquals(distributor.getServerStatus(), ModelDistribution.CONNECTED)
+            && StrUtil.stringEquals(distributor.getServerAddress(), address)) return; //<=============
 
-      setServerAddress(address);
+      distributor.setServerAddress(address);
 
       // close old connection
-      if (StrUtil.stringEquals(this.serverStatus, CONNECTED))
+      if (StrUtil.stringEquals(distributor.getServerStatus(), ModelDistribution.CONNECTED))
       {
          try
          {
-            bufferedwriter.close();
-            setServerStatus(NO_CONNECTION);
+            distributor.getBufferedwriter().close();
+            distributor.setServerStatus(ModelDistribution.NO_CONNECTION);
          }
          catch (IOException e)
          {
@@ -296,16 +153,16 @@ public class ModelManager
       }
 
       // open new connection
-      connectToPartyServer();
+      distributor.connectToPartyServer();
 
       // fire event
       StringBuilder buf = new StringBuilder()
             .append("- " + EventSource.EVENT_TYPE + ": ").append(HAVE_CONNECTION).append("\n")
-            .append("  " + EventSource.EVENT_KEY + ": ").append(Yamler.encapsulate(PROPERTY_serverAddress)).append("\n")
-            .append("  " + PROPERTY_serverAddress + ": ").append(Yamler.encapsulate(serverAddress)).append("\n")
+            .append("  " + EventSource.EVENT_KEY + ": ").append(Yamler.encapsulate(ModelDistribution.PROPERTY_serverAddress)).append("\n")
+            .append("  " + ModelDistribution.PROPERTY_serverAddress + ": ").append(Yamler.encapsulate(distributor.getServerAddress())).append("\n")
             .append("\n");
 
-      eventSource.append(buf.toString());
+      distributor.getEventSource().append(buf.toString());
 
    }
 
@@ -355,7 +212,7 @@ public class ModelManager
       }
       buf.append("\n");
 
-      eventSource.append(buf.toString());
+      distributor.getEventSource().append(buf.toString());
 
       return result;
    }
@@ -393,7 +250,7 @@ public class ModelManager
             .append("  " + Participant.PROPERTY_name + ": ").append(Yamler.encapsulate(name)).append("\n")
             .append("\n");
 
-      eventSource.append(buf.toString());
+      distributor.getEventSource().append(buf.toString());
 
       return result;
    }
@@ -431,7 +288,7 @@ public class ModelManager
                .append("  " + Party.PROPERTY_date + ": ").append(Yamler.encapsulate(date)).append("\n")
                .append("\n");
 
-         eventSource.append(buf.toString());
+         distributor.getEventSource().append(buf.toString());
       }
 
       return party;
@@ -494,53 +351,4 @@ public class ModelManager
    }
 
 
-   protected PropertyChangeSupport listeners = null;
-
-   public boolean firePropertyChange(String propertyName, Object oldValue, Object newValue)
-   {
-      if (listeners != null)
-      {
-         listeners.firePropertyChange(propertyName, oldValue, newValue);
-         return true;
-      }
-      return false;
-   }
-
-   public boolean addPropertyChangeListener(PropertyChangeListener listener)
-   {
-      if (listeners == null)
-      {
-         listeners = new PropertyChangeSupport(this);
-      }
-      listeners.addPropertyChangeListener(listener);
-      return true;
-   }
-
-   public boolean addPropertyChangeListener(String propertyName, PropertyChangeListener listener)
-   {
-      if (listeners == null)
-      {
-         listeners = new PropertyChangeSupport(this);
-      }
-      listeners.addPropertyChangeListener(propertyName, listener);
-      return true;
-   }
-
-   public boolean removePropertyChangeListener(PropertyChangeListener listener)
-   {
-      if (listeners != null)
-      {
-         listeners.removePropertyChangeListener(listener);
-      }
-      return true;
-   }
-
-   public boolean removePropertyChangeListener(String propertyName,PropertyChangeListener listener)
-   {
-      if (listeners != null)
-      {
-         listeners.removePropertyChangeListener(propertyName, listener);
-      }
-      return true;
-   }
 }

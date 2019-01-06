@@ -34,8 +34,8 @@ public class SettingsController
          serverAddrField = new TextField();
          serverAddrField.setAlignment(Pos.CENTER);
 
-         Label statusLabel = new Label(ModelManager.get().getServerStatus());
-         ModelManager.get().addPropertyChangeListener(e -> updateStatusLabel(statusLabel));
+         Label statusLabel = new Label(ModelManager.get().getDistributor().getServerStatus());
+         ModelManager.get().getDistributor().addPropertyChangeListener(e -> updateStatusLabel(statusLabel));
 
          Button connectButton = new Button("(Re-) Connect");
          connectButton.setOnAction(e -> reconnectAction());
@@ -47,7 +47,7 @@ public class SettingsController
          dialogRoot.setPadding(new Insets(0, 18, 0, 18));
       }
 
-      oldContent = ModelManager.get().getServerAddress();
+      oldContent = ModelManager.get().getDistributor().getServerAddress();
       serverAddrField.setText(oldContent);
 
       return dialogRoot;
@@ -62,7 +62,7 @@ public class SettingsController
 
    private void updateStatusLabel(Label statusLabel)
    {
-      String serverStatus = ModelManager.get().getServerStatus();
+      String serverStatus = ModelManager.get().getDistributor().getServerStatus();
       statusLabel.setText(serverStatus);
       System.out.println("New status label " + serverStatus);
    }

@@ -17,8 +17,10 @@ public class PartyApp extends Application
       if (parametersRaw != null && parametersRaw.size() > 0)
       {
          String fileName = parametersRaw.get(0);
-         ModelManager.setHistoryFileName(fileName);
+         ModelDistribution.setHistoryFileName(fileName);
       }
+
+      ModelManager.get();
 
       PartyController partyController = new PartyController();
 
