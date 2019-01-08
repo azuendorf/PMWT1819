@@ -162,6 +162,18 @@ public class Party
       return this.participants;
    }
 
+   public Participant getParticipants(String name)
+   {
+      for (Participant p : this.getParticipants())
+      {
+         if (name.equals(p.getName()))
+         {
+            return p;
+         }
+      }
+      return null;
+   }
+
    public Party withParticipants(Object... value)
    {
       if(value==null) return this;

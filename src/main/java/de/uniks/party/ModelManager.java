@@ -32,7 +32,6 @@ public class ModelManager
 
    private ModelManager()
    {
-      getParty();
       distributor = new ModelDistribution(this);
       distributor.start();
    }
@@ -220,23 +219,12 @@ public class ModelManager
 
    public Participant haveParticipant(String name)
    {
-      if (name == null || "".equals(name))
-      {
-         return null;
-      }
+      if (name == null || "".equals(name)) return null; //====================================
 
       // find old participant
-      Participant result = null;
-      for (Participant p : theParty.getParticipants())
-      {
-         if (name.equals(p.getName()))
-         {
-            result = p;
-            break;
-         }
-      }
+      Participant result = theParty.getParticipants(name);
 
-      if (result != null) return result;
+      if (result != null) return result; //====================================
 
       result = new Participant()
             .setName(name)
@@ -342,6 +330,7 @@ public class ModelManager
          p.setSaldo(saldo);
       }
    }
+
 
    ArrayList<Runnable> viewListeners = new ArrayList<>();
 

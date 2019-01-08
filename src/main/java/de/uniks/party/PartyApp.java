@@ -20,7 +20,7 @@ public class PartyApp extends Application
          ModelDistribution.setHistoryFileName(fileName);
       }
 
-      ModelManager.get();
+      ModelManager.getParty();
 
       PartyController partyController = new PartyController();
 
