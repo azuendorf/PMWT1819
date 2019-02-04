@@ -35,7 +35,7 @@ public class ModelManager
    private ModelManager()
    {
       distributor = new ModelDistribution(this);
-      // distributor.start();
+      distributor.start();
    }
 
 
@@ -294,7 +294,7 @@ public class ModelManager
       {
          theParty = new Party();
 
-         DataManager.get().attach(theParty, "tmp/partyApp");
+         // DataManager.get().attach(theParty, "tmp/partyApp");
 
          ModelManager.get();
 

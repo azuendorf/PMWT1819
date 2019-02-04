@@ -189,6 +189,8 @@ public class ModelDistribution
 
          setServerStatus(CONNECTED);
 
+         System.out.println("Connected to server: " + serverAddress);
+
       }
       catch (IOException e)
       {

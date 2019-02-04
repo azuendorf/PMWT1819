@@ -120,7 +120,7 @@ public class ModelAccess
             }
          }
       }
-      // System.out.println("handling done: ");
+      System.out.println("handling done: \n" + message +"\n");
    }
 
 }
