@@ -3,6 +3,8 @@ package de.uniks.party;
 import de.uniks.party.model.Participant;
 import de.uniks.party.model.Party;
 import de.uniks.party.model.ShoppingItem;
+import de.uniks.party.model.tables.ParticipantTable;
+import de.uniks.party.model.tables.PartyTable;
 import javafx.application.Platform;
 import org.fulib.yaml.StrUtil;
 import org.fulib.yaml.Yamler;
@@ -33,7 +35,7 @@ public class ModelManager
    private ModelManager()
    {
       distributor = new ModelDistribution(this);
-      distributor.start();
+      // distributor.start();
    }
 
 
@@ -292,7 +294,7 @@ public class ModelManager
       {
          theParty = new Party();
 
-         // DataManager.get().attach(theParty, "tmp/partyApp");
+         DataManager.get().attach(theParty, "tmp/partyApp");
 
          ModelManager.get();
 
@@ -308,27 +310,46 @@ public class ModelManager
 
    private static void updateSaldi()
    {
-      double budget = 0;
+      double budget = new PartyTable(theParty)
+            .expandShoppingItems()
+            .expandPrice()
+            .sum();
 
-      for (ShoppingItem item : theParty.getShoppingItems())
-      {
-         budget += item.getPrice();
-      }
+      double share = budget / theParty.getParticipants().size();
 
-      for (Participant p : theParty.getParticipants())
-      {
-         double sum = 0;
-         for (ShoppingItem item : p.getItems())
-         {
-            sum += item.getPrice();
-         }
+//      for (ShoppingItem item : theParty.getShoppingItems())
+//      {
+//         budget += item.getPrice();
+//      }
 
-         double share = budget / theParty.getParticipants().size();
+      new PartyTable(theParty)
+            .expandParticipants()
+            .filter(
+                  p -> {
+                     double myCosts = new ParticipantTable(p)
+                           .expandItems()
+                           .expandPrice()
+                           .sum();
+                     double mySaldo = myCosts - share;
+                     p.setSaldo(mySaldo);
+                     return true;
+                  }
+            );
 
-         double saldo = share - sum;
-
-         p.setSaldo(saldo);
-      }
+//      for (Participant p : theParty.getParticipants())
+//      {
+//         double sum = 0;
+//         for (ShoppingItem item : p.getItems())
+//         {
+//            sum += item.getPrice();
+//         }
+//
+//         double share = budget / theParty.getParticipants().size();
+//
+//         double saldo = share - sum;
+//
+//         p.setSaldo(saldo);
+//      }
    }
 
 

@@ -246,7 +246,8 @@ public class University
       this.withoutStudents(this.getStudents().clone());
 
 
-      new java.util.ArrayList< >(this.getRooms()).forEach(x -> x.removeYou());
+      this.withoutRooms(this.getRooms().clone());
+
 
    }
 

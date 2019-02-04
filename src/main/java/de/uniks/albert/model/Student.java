@@ -7,26 +7,6 @@ import java.beans.PropertyChangeListener;
 public class Student  
 {
 
-   public static final String PROPERTY_matNo = "matNo";
-
-   private int matNo;
-
-   public int getMatNo()
-   {
-      return matNo;
-   }
-
-   public Student setMatNo(int value)
-   {
-      if (value != this.matNo)
-      {
-         int oldValue = this.matNo;
-         this.matNo = value;
-         firePropertyChange("matNo", oldValue, value);
-      }
-      return this;
-   }
-
 
    public static final String PROPERTY_name = "name";
 
@@ -44,48 +24,6 @@ public class Student
          String oldValue = this.name;
          this.name = value;
          firePropertyChange("name", oldValue, value);
-      }
-      return this;
-   }
-
-
-   public static final String PROPERTY_credits = "credits";
-
-   private int credits;
-
-   public int getCredits()
-   {
-      return credits;
-   }
-
-   public Student setCredits(int value)
-   {
-      if (value != this.credits)
-      {
-         int oldValue = this.credits;
-         this.credits = value;
-         firePropertyChange("credits", oldValue, value);
-      }
-      return this;
-   }
-
-
-   public static final String PROPERTY_motivation = "motivation";
-
-   private int motivation;
-
-   public int getMotivation()
-   {
-      return motivation;
-   }
-
-   public Student setMotivation(int value)
-   {
-      if (value != this.motivation)
-      {
-         int oldValue = this.motivation;
-         this.motivation = value;
-         firePropertyChange("motivation", oldValue, value);
       }
       return this;
    }
@@ -275,17 +213,6 @@ public class Student
       return true;
    }
 
-   @Override
-   public String toString()
-   {
-      StringBuilder result = new StringBuilder();
-
-      result.append(" ").append(this.getName());
-
-
-      return result.substring(1);
-   }
-
    public void removeYou()
    {
       this.setUni(null);
@@ -294,28 +221,12 @@ public class Student
       this.withoutDone(this.getDone().clone());
 
 
-   }
+      this.withoutFriends(this.getFriends().clone());
 
 
+      this.withoutFriends(this.getFriends().clone());
 
-   public static final String PROPERTY_points = "points";
 
-   private int points;
-
-   public int getPoints()
-   {
-      return points;
-   }
-
-   public Student setPoints(int value)
-   {
-      if (value != this.points)
-      {
-         int oldValue = this.points;
-         this.points = value;
-         firePropertyChange("points", oldValue, value);
-      }
-      return this;
    }
 
 
@@ -324,5 +235,177 @@ public class Student
    public static final String PROPERTY_done = "done";
 
    public static final String PROPERTY_in = "in";
+
+   public static final String PROPERTY_studentId = "studentId";
+
+   private String studentId;
+
+   public String getStudentId()
+   {
+      return studentId;
+   }
+
+   public Student setStudentId(String value)
+   {
+      if (value == null ? this.studentId != null : ! value.equals(this.studentId))
+      {
+         String oldValue = this.studentId;
+         this.studentId = value;
+         firePropertyChange("studentId", oldValue, value);
+      }
+      return this;
+   }
+
+
+   public static final String PROPERTY_credits = "credits";
+
+   private double credits;
+
+   public double getCredits()
+   {
+      return credits;
+   }
+
+   public Student setCredits(double value)
+   {
+      if (value != this.credits)
+      {
+         double oldValue = this.credits;
+         this.credits = value;
+         firePropertyChange("credits", oldValue, value);
+      }
+      return this;
+   }
+
+
+   public static final String PROPERTY_motivation = "motivation";
+
+   private double motivation;
+
+   public double getMotivation()
+   {
+      return motivation;
+   }
+
+   public Student setMotivation(double value)
+   {
+      if (value != this.motivation)
+      {
+         double oldValue = this.motivation;
+         this.motivation = value;
+         firePropertyChange("motivation", oldValue, value);
+      }
+      return this;
+   }
+
+
+public static final java.util.ArrayList<Student> EMPTY_friends = new java.util.ArrayList<Student>()
+   { @Override public boolean add(Student value){ throw new UnsupportedOperationException("No direct add! Use xy.withFriends(obj)"); }};
+
+
+public static final String PROPERTY_friends = "friends";
+
+private java.util.ArrayList<Student> friends = null;
+
+public java.util.ArrayList<Student> getFriends()
+   {
+      if (this.friends == null)
+      {
+         return EMPTY_friends;
+      }
+
+      return this.friends;
+   }
+
+public Student withFriends(Object... value)
+   {
+      if(value==null) return this;
+      for (Object item : value)
+      {
+         if (item == null) continue;
+         if (item instanceof java.util.Collection)
+         {
+            for (Object i : (java.util.Collection) item)
+            {
+               this.withFriends(i);
+            }
+         }
+         else if (item instanceof Student)
+         {
+            if (this.friends == null)
+            {
+               this.friends = new java.util.ArrayList<Student>();
+            }
+            if ( ! this.friends.contains(item))
+            {
+               this.friends.add((Student)item);
+               ((Student)item).withFriends(this);
+               firePropertyChange("friends", null, item);
+            }
+         }
+         else throw new IllegalArgumentException();
+      }
+      return this;
+   }
+
+
+public Student withoutFriends(Object... value)
+   {
+      if (this.friends == null || value==null) return this;
+      for (Object item : value)
+      {
+         if (item == null) continue;
+         if (item instanceof java.util.Collection)
+         {
+            for (Object i : (java.util.Collection) item)
+            {
+               this.withoutFriends(i);
+            }
+         }
+         else if (item instanceof Student)
+         {
+            if (this.friends.contains(item))
+            {
+               this.friends.remove((Student)item);
+               ((Student)item).withoutFriends(this);
+               firePropertyChange("friends", item, null);
+            }
+         }
+      }
+      return this;
+   }
+
+   public static final String PROPERTY_points = "points";
+
+   private double points;
+
+   public double getPoints()
+   {
+      return points;
+   }
+
+   public Student setPoints(double value)
+   {
+      if (value != this.points)
+      {
+         double oldValue = this.points;
+         this.points = value;
+         firePropertyChange("points", oldValue, value);
+      }
+      return this;
+   }
+
+
+   @Override
+   public String toString()
+   {
+      StringBuilder result = new StringBuilder();
+
+      result.append(" ").append(this.getName());
+      result.append(" ").append(this.getStudentId());
+
+
+      return result.substring(1);
+   }
 
 }

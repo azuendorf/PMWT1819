@@ -58,6 +58,10 @@ public class ModelDistribution
 
    public EventSource getEventSource()
    {
+      if (eventSource == null)
+      {
+         eventSource = new EventSource();
+      }
       return eventSource;
    }
 

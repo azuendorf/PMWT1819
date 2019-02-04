@@ -32,5 +32,6 @@ public class PartyModelGen
       item.buildAssociation(participant, "responsible", mb.ONE, "items", mb.MANY);
 
       Fulib.generator().generate(mb.getClassModel());
+      Fulib.tablesGenerator().generate(mb.getClassModel());
    }
 }

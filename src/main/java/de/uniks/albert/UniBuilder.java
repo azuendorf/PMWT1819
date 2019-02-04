@@ -28,7 +28,7 @@ public class UniBuilder
 
       for (Assignment a : r.getAssignments())
       {
-         int p = a.getPoints();
+         double p = a.getPoints();
 
          if (karli.getMotivation() < a.getPoints()
                || karli.getDone().contains(a))

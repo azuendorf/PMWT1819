@@ -1,14 +1,16 @@
 package de.uniks.party;
 
-import org.fulib.yaml.*;
+import org.fulib.yaml.ModelListener;
+import org.fulib.yaml.ReflectorMap;
+import org.fulib.yaml.YamlIdMap;
+import org.h2.jdbcx.JdbcDataSource;
 
 import java.beans.PropertyChangeEvent;
 import java.io.*;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.LinkedHashMap;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,6 +33,8 @@ public class DataManager
    private File modelFile = null;
    private String logDirName = "tmp";
    private String logFileName;
+   private Connection conn;
+   private Statement stmt;
 
    public static DataManager get()
    {
@@ -48,9 +52,42 @@ public class DataManager
       eventYamler = new EventYamler(packageName).setYamlIdMap(yamlIdMap);
       reflectorMap = new ReflectorMap(packageName);
 
-      loadModel(rootObject);
+      // try a database
+      JdbcDataSource ds = new JdbcDataSource();
+      ds.setURL("jdbc:h2:./tmp/h2test;AUTO_SERVER=TRUE;AUTO_SERVER_PORT=9090;");
+      ds.setUser("sa");
+      ds.setPassword("sa");
+      try
+      {
+         conn = ds.getConnection();
+         stmt = conn.createStatement();
+         String sql =  "CREATE TABLE   PartyLog " +
+            "(historyKey VARCHAR(255) not NULL, " +
+            " time VARCHAR(255), " +
+            " source VARCHAR(255), " +
+            " sourceType VARCHAR(255), " +
+            " property VARCHAR(255), " +
+            " newValue VARCHAR(255), " +
+            " newValueType VARCHAR(255), " +
+            " PRIMARY KEY ( historyKey ));";
 
-      loadEvents(rootObject);
+         stmt.executeUpdate(sql);
+         System.out.println("Created table in given database...");
+
+         // STEP 4: Clean-up environment
+         //         stmt.close();
+         //         conn.close();
+      }
+      catch (SQLException e)
+      {
+         System.out.println(e.getMessage());
+      }
+
+      // loadModel(rootObject);
+
+      // loadEvents(rootObject);
+
+      loadDatabase(rootObject);
 
       storeModel(rootObject);
 
@@ -60,6 +97,7 @@ public class DataManager
 
       return this;
    }
+
 
    private void removeLogFile()
    {
@@ -115,7 +153,30 @@ public class DataManager
 
    private void handleEvent(PropertyChangeEvent e)
    {
-      String buf = eventYamler.encode(e);
+      String yaml = eventYamler.encode(e);
+
+      String sql = eventYamler.sqlUpdate.toString();
+      try
+      {
+         if (e.getNewValue() != null)
+         {
+
+            int rowCount = stmt.executeUpdate(sql);
+            System.out.println("update " + rowCount);
+
+            if (rowCount == 0)
+            {
+               sql = eventYamler.sqlInsert.toString();
+               rowCount = stmt.executeUpdate(sql);
+               System.out.println("insert " + rowCount);
+            }
+         }
+      }
+      catch (Exception ex)
+      {
+         System.out.println(sql);
+         ex.printStackTrace();
+      }
 
       try
       {
@@ -129,7 +190,7 @@ public class DataManager
                logFilePath.createNewFile();
             }
             FileWriter fileWriter = new FileWriter(logFilePath, true);
-            fileWriter.write(buf.toString());
+            fileWriter.write(yaml);
             fileWriter.flush();
             fileWriter.close();
          }
@@ -144,7 +205,7 @@ public class DataManager
                logFilePath.createNewFile();
             }
             FileWriter fileWriter = new FileWriter(logFilePath, true);
-            fileWriter.write(buf);
+            fileWriter.write(yaml);
             fileWriter.flush();
             fileWriter.close();
          }
@@ -154,6 +215,7 @@ public class DataManager
          e1.printStackTrace();
          Logger.getGlobal().log(Level.SEVERE, "could not write log to " + logFilePath, e);
       }
+
    }
 
 
@@ -214,6 +276,24 @@ public class DataManager
       }
    }
 
+
+   private void loadDatabase(Object rootObject)
+   {
+      String sql = "SELECT * FROM PartyLog;";
+      try
+      {
+         boolean success = stmt.execute(sql);
+
+         ResultSet resultSet = stmt.getResultSet();
+
+         eventYamler.decode(resultSet, rootObject);
+      }
+      catch (SQLException e)
+      {
+         e.printStackTrace();
+      }
+
+   }
 
 
 

@@ -94,47 +94,4 @@ public class TestAssignments
       Assert.assertThat(karli.getMotivation(), equalTo(214-18));
    }
 
-
-
-   public static void main(String[] args)
-   {
-      new TestAssignments().generateClassModelCode();
-   }
-
-   private void generateClassModelCode()
-   {
-      ClassModelBuilder mb = Fulib.classModelBuilder("de.uniks.albert.model");
-
-      ClassBuilder uni = mb.buildClass("University")
-            .buildAttribute("name", mb.STRING);
-
-      ClassBuilder student = mb.buildClass("Student")
-            .buildAttribute("matNo", mb.INT)
-            .buildAttribute("name", mb.STRING)
-            .buildAttribute("credits", mb.INT)
-            .buildAttribute("points", mb.INT)
-            .buildAttribute("motivation", mb.INT);
-
-      uni.buildAssociation(student, "students", mb.MANY, "uni", mb.ONE);
-
-      ClassBuilder room = mb.buildClass("Room")
-            .buildAttribute("topic", mb.STRING)
-            .buildAttribute("credits", mb.INT);
-
-      uni.buildAssociation(room, "rooms", mb.MANY, "uni", mb.ONE)
-            .setAggregation();
-
-      ClassBuilder assignment = mb.buildClass("Assignment")
-            .buildAttribute("task", mb.STRING)
-            .buildAttribute("points", mb.INT);
-
-      assignment.buildAssociation(room, "room", mb.ONE, "assignments", mb.MANY);
-      student.buildAssociation(assignment, "done", mb.MANY, "students", mb.MANY);
-
-      student.buildAssociation(room, "in", mb.ONE, "students", mb.MANY);
-
-      ClassModel model = mb.getClassModel();
-
-      Fulib.generator().generate(model);
-   }
 }

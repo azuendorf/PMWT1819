@@ -28,27 +28,6 @@ public class Assignment
    }
 
 
-   public static final String PROPERTY_points = "points";
-
-   private int points;
-
-   public int getPoints()
-   {
-      return points;
-   }
-
-   public Assignment setPoints(int value)
-   {
-      if (value != this.points)
-      {
-         int oldValue = this.points;
-         this.points = value;
-         firePropertyChange("points", oldValue, value);
-      }
-      return this;
-   }
-
-
    private Room room = null;
 
    public Room getRoom()
@@ -204,17 +183,6 @@ public class Assignment
       return true;
    }
 
-   @Override
-   public String toString()
-   {
-      StringBuilder result = new StringBuilder();
-
-      result.append(" ").append(this.getTask());
-
-
-      return result.substring(1);
-   }
-
    public void removeYou()
    {
       this.setRoom(null);
@@ -228,5 +196,37 @@ public class Assignment
    public static final String PROPERTY_room = "room";
 
    public static final String PROPERTY_students = "students";
+
+   public static final String PROPERTY_points = "points";
+
+   private double points;
+
+   public double getPoints()
+   {
+      return points;
+   }
+
+   public Assignment setPoints(double value)
+   {
+      if (value != this.points)
+      {
+         double oldValue = this.points;
+         this.points = value;
+         firePropertyChange("points", oldValue, value);
+      }
+      return this;
+   }
+
+
+   @Override
+   public String toString()
+   {
+      StringBuilder result = new StringBuilder();
+
+      result.append(" ").append(this.getTask());
+
+
+      return result.substring(1);
+   }
 
 }

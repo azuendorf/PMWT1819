@@ -28,27 +28,6 @@ public class Room
    }
 
 
-   public static final String PROPERTY_credits = "credits";
-
-   private int credits;
-
-   public int getCredits()
-   {
-      return credits;
-   }
-
-   public Room setCredits(int value)
-   {
-      if (value != this.credits)
-      {
-         int oldValue = this.credits;
-         this.credits = value;
-         firePropertyChange("credits", oldValue, value);
-      }
-      return this;
-   }
-
-
    private University uni = null;
 
    public University getUni()
@@ -280,25 +259,14 @@ public class Room
       return true;
    }
 
-   @Override
-   public String toString()
-   {
-      StringBuilder result = new StringBuilder();
-
-      result.append(" ").append(this.getTopic());
-
-
-      return result.substring(1);
-   }
-
    public void removeYou()
    {
       this.setUni(null);
 
-      this.withoutAssignments(this.getAssignments().clone());
-
-
       this.withoutStudents(this.getStudents().clone());
+
+
+      this.withoutAssignments(this.getAssignments().clone());
 
 
    }
@@ -309,5 +277,59 @@ public class Room
    public static final String PROPERTY_assignments = "assignments";
 
    public static final String PROPERTY_students = "students";
+
+   public static final String PROPERTY_roomNo = "roomNo";
+
+   private String roomNo;
+
+   public String getRoomNo()
+   {
+      return roomNo;
+   }
+
+   public Room setRoomNo(String value)
+   {
+      if (value == null ? this.roomNo != null : ! value.equals(this.roomNo))
+      {
+         String oldValue = this.roomNo;
+         this.roomNo = value;
+         firePropertyChange("roomNo", oldValue, value);
+      }
+      return this;
+   }
+
+
+   public static final String PROPERTY_credits = "credits";
+
+   private double credits;
+
+   public double getCredits()
+   {
+      return credits;
+   }
+
+   public Room setCredits(double value)
+   {
+      if (value != this.credits)
+      {
+         double oldValue = this.credits;
+         this.credits = value;
+         firePropertyChange("credits", oldValue, value);
+      }
+      return this;
+   }
+
+
+   @Override
+   public String toString()
+   {
+      StringBuilder result = new StringBuilder();
+
+      result.append(" ").append(this.getRoomNo());
+      result.append(" ").append(this.getTopic());
+
+
+      return result.substring(1);
+   }
 
 }

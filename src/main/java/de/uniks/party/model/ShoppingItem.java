@@ -4,7 +4,7 @@ import java.beans.PropertyChangeSupport;
 
 import java.beans.PropertyChangeListener;
 
-public class ShoppingItem 
+public class ShoppingItem  
 {
 
    public static final String PROPERTY_description = "description";

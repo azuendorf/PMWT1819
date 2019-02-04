@@ -15,10 +15,10 @@ public class PartyApp extends Application
       Parameters parameters = getParameters();
       List<String> parametersRaw = parameters.getRaw();
       if (parametersRaw != null && parametersRaw.size() > 0)
-      {
-         String fileName = parametersRaw.get(0);
-         ModelDistribution.setHistoryFileName(fileName);
-      }
+   {
+      String fileName = parametersRaw.get(0);
+      ModelDistribution.setHistoryFileName(fileName);
+   }
 
       ModelManager.getParty();
 

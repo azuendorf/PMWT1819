@@ -48,7 +48,7 @@ public class PartyController
       settingsButton.setGraphic(new ImageView(imageSettings));
       settingsButton.setOnAction( e -> switchToSettingsView());
 
-      HBox buttonBar = new HBox(18, startButton, peopleButton, shoppingButton, settingsButton);
+      HBox buttonBar = new HBox(18, startButton, peopleButton, shoppingButton /*, settingsButton */ );
       buttonBar.setAlignment(Pos.CENTER);
 
       startDialogController = new StartDialogController(this);
