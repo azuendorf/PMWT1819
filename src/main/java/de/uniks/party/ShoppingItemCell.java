@@ -48,6 +48,7 @@ public class ShoppingItemCell extends ListCell<ShoppingItem>
          Button editButton = new Button("<");
          editButton.setOnAction(e -> partyController.switchToAddEditShoppingItem(item));
          Button delButton = new Button("-");
+         delButton.setOnAction(e -> ModelManager.get().removeShoppingItem(item));
 
          HBox participantLine = new HBox(9, nameLabel, responsibleLabel, priceLabel, editButton, delButton);
          participantLine.setAlignment(Pos.CENTER);

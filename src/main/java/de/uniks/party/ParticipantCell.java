@@ -38,6 +38,7 @@ public class ParticipantCell extends ListCell<Participant>
 
          Button editButton = new Button("<");
          Button delButton = new Button("-");
+         delButton.setOnAction( e -> ModelManager.get().removeParticipant(participant));
 
          HBox participantLine = new HBox(9, nameLabel, saldoLabel, editButton, delButton);
          participantLine.setAlignment(Pos.CENTER);

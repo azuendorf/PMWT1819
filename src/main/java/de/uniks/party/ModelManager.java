@@ -27,6 +27,8 @@ public class ModelManager
    public static final String HAVE_PARTICIPANT = "haveParticipant";
    public static final String HAVE_SHOPPING_ITEM = "haveShoppingItem";
    public static final String HAVE_CONNECTION = "haveConnection";
+   public static final String REMOVE_SHOPPING_ITEM = "removeShoppingItem";
+   public static final String REMOVE_PARTICIPANT = "removeParticipant";
 
    private static ModelManager mm;
 
@@ -89,6 +91,31 @@ public class ModelManager
 
             haveParticipant(name);
          }
+         else if (REMOVE_PARTICIPANT.equals(map.get(EventSource.EVENT_TYPE)))
+         {
+            Participant participant = theParty.getParticipants(map.get(EventSource.EVENT_KEY));
+
+            if (participant == null) continue; //======================
+
+            removeParticipant(participant);
+         }
+         else if (REMOVE_SHOPPING_ITEM.equals(map.get(EventSource.EVENT_TYPE)))
+         {
+            String description = map.get(EventSource.EVENT_KEY);
+            ShoppingItem toDel = null;
+
+            for (ShoppingItem shoppingItem : theParty.getShoppingItems())
+            {
+               if (StrUtil.stringEquals(description, shoppingItem.getDescription()))
+               {
+                  toDel = shoppingItem;
+                  break;
+               }
+            }
+            if (toDel == null) continue;
+
+            removeShoppingItem(toDel);
+         }
          else if (HAVE_SHOPPING_ITEM.equals(map.get(EventSource.EVENT_TYPE)))
          {
             String description = map.get(ShoppingItem.PROPERTY_description);
@@ -108,7 +135,7 @@ public class ModelManager
             Participant responsible = null;
             if (responsibleName != null && ! "".equals(responsibleName.trim()))
             {
-               responsible = haveParticipant(responsibleName);
+               responsible = haveParticipantProxy(responsibleName);
             }
 
             haveShoppingItem(description, price, responsible);
@@ -219,6 +246,42 @@ public class ModelManager
    }
 
 
+   public void removeShoppingItem(ShoppingItem item)
+   {
+      item.removeYou();
+
+      updateSaldi();
+
+      StringBuilder buf = new StringBuilder()
+            .append("- " + EventSource.EVENT_TYPE + ": ").append(REMOVE_SHOPPING_ITEM).append("\n")
+            .append("  " + EventSource.EVENT_KEY + ": ").append(Yamler.encapsulate(item.getDescription())).append("\n");
+      buf.append("\n");
+
+      distributor.getEventSource().append(buf.toString());
+
+   }
+
+   public Participant haveParticipantProxy(String name)
+   {
+      LinkedHashMap<String, String> map = distributor.getEventSource().getEvent(name);
+
+      if (map != null)
+      {
+         String eventType = map.get(EventSource.EVENT_TYPE);
+
+         if (StrUtil.stringEquals(eventType, REMOVE_PARTICIPANT))
+         {
+            // do not create proxy
+            Logger.getGlobal().info("Avoided to recreate removed participant by late shopping item.");
+            return null;
+         }
+      }
+
+      return haveParticipant(name);
+   }
+
+
+
    public Participant haveParticipant(String name)
    {
       if (name == null || "".equals(name)) return null; //====================================
@@ -244,6 +307,23 @@ public class ModelManager
 
       return result;
    }
+
+
+
+   public void removeParticipant(Participant participant)
+   {
+      participant.removeYou();
+
+      updateSaldi();
+
+      StringBuilder buf = new StringBuilder()
+            .append("- " + EventSource.EVENT_TYPE + ": ").append(REMOVE_PARTICIPANT).append("\n")
+            .append("  " + EventSource.EVENT_KEY + ": ").append(Yamler.encapsulate(participant.getName())).append("\n")
+            .append("\n");
+
+      distributor.getEventSource().append(buf.toString());
+   }
+
 
 
    // model api
@@ -317,11 +397,6 @@ public class ModelManager
 
       double share = budget / theParty.getParticipants().size();
 
-//      for (ShoppingItem item : theParty.getShoppingItems())
-//      {
-//         budget += item.getPrice();
-//      }
-
       new PartyTable(theParty)
             .expandParticipants()
             .filter(
@@ -335,21 +410,6 @@ public class ModelManager
                      return true;
                   }
             );
-
-//      for (Participant p : theParty.getParticipants())
-//      {
-//         double sum = 0;
-//         for (ShoppingItem item : p.getItems())
-//         {
-//            sum += item.getPrice();
-//         }
-//
-//         double share = budget / theParty.getParticipants().size();
-//
-//         double saldo = share - sum;
-//
-//         p.setSaldo(saldo);
-//      }
    }
 
 
@@ -359,6 +419,5 @@ public class ModelManager
    {
       viewListeners.add(listener);
    }
-
 
 }
